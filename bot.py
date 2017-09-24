@@ -2,7 +2,6 @@
 import constants
 import telebot
 import pyowm
-import urllib.request as urllib2
 
 bot = telebot.TeleBot(constants.token_tlgrm)
 owm = pyowm.OWM(constants.token_owm, language="ru")
@@ -18,25 +17,23 @@ def renaming(name):
     return "".join(list2)
 
 city = "Зима"
-observation = owm.weather_at_place(city)
-my_weather = observation.get_weather()
-
-letter = "Погода в <b>{0}</b> сейчас:\n\nТемпература: {1} °C\nВетер: {2} м/с\n{3}\n{4}".format(renaming(city), 
-                                                                                my_weather.get_temperature("celsius")["temp"], 
-                                                                                my_weather.get_wind()["speed"], 
-                                                                                my_weather.get_detailed_status().title(),
-                                                                                my_weather.get_reference_time(timeformat='iso'))
 
 @bot.message_handler(commands=["start"])
 def handle_message(message):
     keyboard = telebot.types.ReplyKeyboardMarkup(True)
     keyboard.row("Погода сейчас", "Погода на завтра")
-    keyboard.row("Выбрать город")
     bot.send_message(message.from_user.id, "Привет!\U0001f604", reply_markup=keyboard)
 
 @bot.message_handler(content_types=["text"])
 def handle_message(message):
     if message.text == "Погода сейчас":
+        observation = owm.weather_at_place(city)
+        my_weather = observation.get_weather()
+        letter = "Погода в <b>{0}</b> сейчас:\n\nТемпература: {1} °C\nВетер: {2} м/с\n{3}\n{4}".format(renaming(city), 
+                                                                                my_weather.get_temperature("celsius")["temp"], 
+                                                                                my_weather.get_wind()["speed"], 
+                                                                                my_weather.get_detailed_status().title(),
+                                                                                my_weather.get_reference_time(timeformat='iso'))
         bot.send_message(message.from_user.id, letter, parse_mode="HTML")
         if(my_weather.get_detailed_status() == "легкий дождь"):
             stick_id = "CAADAgADEwADn-jJF-fsRxrFhhlZAg"
@@ -53,9 +50,8 @@ def handle_message(message):
 
         bot.send_sticker(message.from_user.id, stick_id)
 
-    if message.text == "Выбрать город":
-        bot.send_message(message.from_user.id, "Введите название города:")
-
+    if message.text == "Погода на завтра":
+        bot.send_message(message.from_user.id, "Эта функция ещё в разработке\U0001f604")
 
 bot.polling(none_stop=True)
 
